@@ -7,7 +7,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { useRouter } from "next/navigation";
-import StandardForm from "@/components/features/auth/registration/StandardForm";
+import { RegistrationForm } from "@/components/features/auth/registration/StandardForm";
 
 const LoginPage = () => {
   const router = useRouter();
@@ -41,19 +41,7 @@ const LoginPage = () => {
 
         {/* Milieu : Formulaire */}
         <div className="flex flex-col items-center space-y-8 flex-1 justify-center">
-          {/* En-tête */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-[var(--color-lightning-yellow-900)]">
-              Bienvenue
-            </h1>
-            <p className="text-[var(--color-lightning-yellow-700)] text-base font-medium">
-              Créer votre compte sur{" "}
-              <span className="font-bold text-[var(--color-lightning-yellow-800)]">
-                SmartRide
-              </span>
-            </p>
-          </div>
-          <StandardForm />
+          <RegistrationForm />
         </div>
       </div>
 

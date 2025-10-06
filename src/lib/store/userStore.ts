@@ -1,6 +1,6 @@
-import { User } from "@/generated/prisma";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { User } from "../../../generated/prisma";
 
 interface UserStore {
   user: User | null;
@@ -16,7 +16,7 @@ const useUserStore = create<UserStore>()(
       setUser: (user) => set({ user }),
       logout: () => set({ user: null }),
     }),
-    { name: "supabase-user" } 
+    { name: "supabase-user" }
   )
 );
 
