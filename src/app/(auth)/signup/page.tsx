@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useSignUp } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createUserInDB } from "@/app/server-actions/auth/signup";
+import { useRouter } from "next/navigation";
 
 const SignUp = () => {
   const { signUp, isLoaded } = useSignUp();
@@ -14,6 +16,8 @@ const SignUp = () => {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState("");
+  const router = useRouter();
 
   if (!isLoaded) return <div>Loading...</div>;
 
@@ -23,7 +27,7 @@ const SignUp = () => {
     setError("");
 
     try {
-      // 1️⃣ Créer le compte
+      // 1️⃣ Créer le compte dans clerk
       await signUp.create({
         firstName,
         lastName,
@@ -51,11 +55,7 @@ const SignUp = () => {
     setLoading(true);
     setError("");
 
-    console.log("Code envoyé :", code.trim());
-    console.log("SignUp status avant :", signUp.status);
-
     try {
-      // 3️⃣ Vérifier le code
       const result = await signUp.attemptEmailAddressVerification({
         code: code.trim(),
       });
@@ -64,14 +64,33 @@ const SignUp = () => {
 
       if (result.status === "complete") {
         alert("Vérification réussie ! Compte finalisé.");
+
+        // ✅ Récupère l'ID Clerk du user
+        const clerkId = result.createdUserId || signUp.createdUserId;
+
+        // ✅ Envoie dans la base via ta server action
+        const response = await createUserInDB({
+          clerkId: clerkId!,
+          nom: lastName,
+          prenom: firstName,
+          email,
+          phone,
+        });
+
+        if (!response.success) {
+          console.error("Erreur création DB :", response.error);
+          alert("Erreur lors de l'enregistrement en base : " + response.error);
+        } else {
+          console.log("Utilisateur enregistré :", response.user);
+          alert("Utilisateur ajouté dans la base !");
+          router.push("/signin");
+        }
       } else {
-        console.log("Status incomplet :", result.status);
         setError("Code incorrect ou vérification incomplète");
         alert("Code incorrect ou vérification incomplète");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erreur inconnue";
-      console.error("Erreur complète :", err);
       console.error("Erreur Step 2 :", message);
       setError(message);
       alert(`Erreur : ${message}`);
@@ -123,6 +142,14 @@ const SignUp = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="border p-2 rounded"
+                required
+              />
+              <input
+                type="phone"
+                placeholder="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="border p-2 rounded"
                 required
               />
